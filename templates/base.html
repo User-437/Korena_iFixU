@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Korena{% endblock %} | Korena Pharmacy PharmaLedger</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+  <link rel="manifest" href="{{ url_for('static',filename='manifest.webmanifest') }}">
+  <meta name="theme-color" content="#142536">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PharmaLedger">
+  <link rel="apple-touch-icon" href="{{ url_for('static',filename='icons/icon-192.png') }}">
+</head>
+
+<body class="{% if not me %}auth-background{% endif %}">
+  <div id="network-status" role="status" hidden>Offline: PharmaLedger needs a connection to the Korena Pharmacy server. Accounting changes are unavailable.</div>
+  <button id="install-app" class="install-pwa-btn" type="button" hidden>Install PharmaLedger</button>
+  {% if me %}
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="identity" href="{{url_for('journals')}}">
+        <span class="brand-icon">✚</span>
+        <span><strong>Korena</strong><small>PHARMACY ACCOUNTING</small></span>
+      </a>
+      <div class="sidebar-label">ACCOUNTING</div>
+      <nav class="main-menu" aria-label="Main navigation">
+        <a class="{% if request.endpoint in ('journals','new_journal','entry_detail') %}selected{% endif %}"
+          href="{{url_for('journals')}}"><span class="menu-icon">▤</span> Journal</a>
+        <a class="{% if request.endpoint=='ledger' %}selected{% endif %}" href="{{url_for('ledger')}}"><span
+            class="menu-icon">☷</span> General Ledger</a>
+        <a class="{% if request.endpoint=='trial' %}selected{% endif %}" href="{{url_for('trial')}}"><span
+            class="menu-icon">▥</span> Trial Balance</a>
+        {% if me.role == 'admin' %}<a class="{% if request.endpoint=='audit_log' %}selected{% endif %}" href="{{url_for('audit_log')}}"><span
+            class="menu-icon">⌕</span> Audit Log</a>{% endif %}
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="account-icon">{{me.email[:1]|upper}}</div>
+        <div class="signed-in"><strong>{{me.email}}</strong><small>Logged in · {{me.role|capitalize}}</small></div>
+        <form method="post" action="{{url_for('logout')}}"><input type="hidden" name="_csrf" value="{{csrf}}"><button
+            class="logout" type="submit" title="Log out" aria-label="Log out">↪</button></form>
+      </div>
+    </aside>
+    <div class="main-pane">
+      <div class="topbar"><span class="online-dot"></span> Korena Pharmacy · Secure accounting workspace <span
+          class="topbar-right">PHP / Philippine Peso</span></div>
+      <main class="main-content">
+        {% else %}<main class="login-area">{% endif %}
+          <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="false">
+          {% with messages=get_flashed_messages(with_categories=true) %}
+          {% for category, msg in messages %}<div class="app-toast {{category|e}}" role="{{'alert' if category == 'error' else 'status'}}"><span class="toast-symbol" aria-hidden="true">{{'!' if category == 'error' else '✓'}}</span><span class="toast-message">{{msg}}</span><button class="toast-close" type="button" aria-label="Dismiss notification">×</button></div>{% endfor %}
+          {% endwith %}
+          </div>
+          {% block content %}{% endblock %}
+        </main>
+        {% if me %}
+        <footer class="footer">Korena Pharmacy · Authorized personnel only · All posted transactions are auditable</footer>
+    </div>
+  </div>
+  {% endif %}
+  <script src="{{ url_for('static',filename='ui-feedback.js') }}" defer></script>
+  <script src="{{ url_for('static',filename='pwa.js') }}" defer></script>
+</body>
+
+</html>
